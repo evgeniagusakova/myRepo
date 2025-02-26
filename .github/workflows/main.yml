@@ -1,0 +1,66 @@
+name: Build iOS App
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      # 1. Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # 2. Set up Ruby environment (required if using Fastlane)
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '2.7'  # Update to your project's Ruby version
+
+      # 3. Install project dependencies using Bundler and CocoaPods
+      - name: Install dependencies
+        run: |
+          gem install bundler
+          bundle install
+          pod install
+
+      # 4. Build the iOS app using xcodebuild
+      - name: Build App
+        run: |
+          xcodebuild -workspace YourApp.xcworkspace \
+                     -scheme "YourScheme" \
+                     -sdk iphoneos \
+                     -configuration Release \
+                     build CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
+
+      # 5. (Optional) Run Tests
+      #- name: Run Tests
+      #  run: |
+      #    xcodebuild test -workspace YourApp.xcworkspace \
+      #                       -scheme "YourScheme" \
+      #                       -destination 'platform=iOS Simulator,name=iPhone 12,OS=latest'
+
+      # 6. (Optional) Archive the build and create an IPA for distribution
+      #- name: Archive Build
+      #  run: |
+      #    xcodebuild -workspace YourApp.xcworkspace \
+      #               -scheme "YourScheme" \
+      #               -sdk iphoneos \
+      #               -configuration Release \
+      #               archive -archivePath ${{ github.workspace }}/build/YourApp.xcarchive
+      #- name: Export IPA
+      #  run: |
+      #    xcodebuild -exportArchive \
+      #               -archivePath ${{ github.workspace }}/build/YourApp.xcarchive \
+      #               -exportPath ${{ github.workspace }}/build/YourApp \
+      #               -exportOptionsPlist ExportOptions.plist
+
+      # 7. (Optional) Upload the IPA as an artifact for later use
+      #- name: Upload Artifact
+      #  uses: actions/upload-artifact@v2
+      #  with:
+      #    name: YourApp-IPA
+      #    path: ${{ github.workspace }}/build/YourApp
